@@ -1,0 +1,48 @@
+language: php
+
+addons:
+  postgresql: "9.3"
+
+php:
+  - 5.5
+
+services:
+  - mongodb
+  - memcached
+  - postgresql
+
+before_install:
+   - rvm install 2.1.5
+
+install:
+  - mkdir travis-phantomjs
+  - wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2 -O $PWD/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
+  - sudo tar -xvf $PWD/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2 -C /usr/local/phantomjs/bin/
+  - gem install bundle --no-rdoc --no-ri
+  - bundle install
+
+before_script:
+  - echo 'Australia/Sydney' | sudo tee /etc/timezone
+  - phpenv config-add travis/php.ini
+  - sudo dpkg-reconfigure --frontend noninteractive tzdata
+  - sudo ntpdate pool.ntp.org
+  - printf "\r" | pecl install yaml
+  # enable php-fpm
+  - sudo cp ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf.default ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf
+  - echo "cgi.fix_pathinfo = 1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - ~/.phpenv/versions/$(phpenv version-name)/sbin/php-fpm
+  # setup nginx
+  - sudo apt-get install -y nginx
+  - sudo cp travis/travis_nginx.conf /etc/nginx/nginx.conf
+  - sudo sed -i "s|%TRAVIS_BUILD_DIR%|$(pwd)|g" /etc/nginx/nginx.conf
+  - cat /etc/nginx/nginx.conf
+  - sudo /etc/init.d/nginx restart
+
+script:
+  - rake
+  - curl -vsf 'http://localhost:8080/' &> /dev/stdout
+  - cat /tmp/error.log
+
+notifications:
+  email:
+    oodgaard@ultraserve.com.au
