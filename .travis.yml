@@ -19,7 +19,6 @@ install:
   - wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2 -O $PWD/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
   - sudo tar -xvf $PWD/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2 -C /usr/local/phantomjs/bin/
   - gem install bundle --no-rdoc --no-ri
-  - bundle install
 
 before_script:
   - echo 'Australia/Sydney' | sudo tee /etc/timezone
@@ -37,6 +36,7 @@ before_script:
   - sudo sed -i "s|%TRAVIS_BUILD_DIR%|$(pwd)|g" /etc/nginx/nginx.conf
   - cat /etc/nginx/nginx.conf
   - sudo /etc/init.d/nginx restart
+  - bundle install
 
 script:
   - rake
